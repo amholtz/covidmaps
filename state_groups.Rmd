@@ -1,0 +1,145 @@
+---
+title: "Script for Adding Columns"
+author: "Andrew Holtz"
+date: "08/03/2020"
+output: html_document
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(stringr))
+suppressPackageStartupMessages(library(sf))
+suppressPackageStartupMessages(library(leaflet))
+suppressPackageStartupMessages(library(rgdal))
+library(raster)
+library(tmap)
+library(RColorBrewer)
+library(dplyr)
+library(lubridate)
+library(ggridges)
+
+```
+
+#
+```{r , echo = FALSE, warning = FALSE, message= FALSE}
+
+#input metadata table for each tree
+
+metadata_0 <- read.delim("C:/Users/Andrew/Dropbox/masters_project/initial_maps/metadata_0.tab")
+
+
+NE <- list("Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont", "New Jersey","New York", "Pennsylvania")
+
+MW <- list("Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin","Iowa", "Kansas", "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota")
+
+SO <- list("Delaware", "Florida", "Georgia", "Maryland"," North Carolina", "South Carolina", "Virginia", "District of Columbia", "West Virginia", "Alabama", "Kentucky", "Mississippi", "Tennessee", "Arkansas", "Louisiana", "Oklahoma","Texas")
+
+WT <- list("Arizona", "Colorado", "Idaho", "Montana", "Nevada", "New Mexico", "Utah", "Wyoming", "Alaska", "California", "Hawaii", "Oregon","Washington")
+
+rep_gov <- list("Alaska", "Arizona", "Arkansas", "Florida", "Georgia", "Idaho", "Indiana", "Iowa", "Massachusetts", "Maryland", "Mississippi", "Missouri", "Nebraska", "New Hampshire", "North Dakota", "Ohio", "Oklahoma", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "West Virginia", "Wyoming")
+
+metadata_0$gov <- ifelse(is.element(metadata_0$state, rep_gov) , "Republican","Democrat")
+
+metadata_0$group <- ifelse(is.element(metadata_0$state, NE) , "Northeast",
+                           ifelse(is.element(metadata_0$state, MW) , "Midwest",
+                                  ifelse(is.element(metadata_0$state, SO) , "South",
+                                         ifelse(is.element(metadata_0$state, WT) , "West",
+                                          "Abroad"))))
+
+metadata_0 %>% 
+  group_by(group) %>% 
+  count()
+
+length(NE)
+length(MW)
+length(SO)
+length(WT)
+
+write.table(metadata_0, file = "group_metadata_0.tab", sep ="\t", row.names = FALSE)
+
+meta_sep <-str_split_fixed(metadata_0$location, " / ", 4)
+
+meta_sep <- as.data.frame(meta_sep)
+
+meta_sep$V5 <- ifelse(meta_sep$V3 == "New York" ,as.character(meta_sep$V4), "outside_NY")
+
+meta_sep <- bind_cols(meta_sep, metadata_0, by = NULL)
+
+meta_sep$county <- ifelse(meta_sep$V3 == "New York" ,as.character(meta_sep$V4),
+                          as.character(meta_sep$group))
+
+meta_sep <- as.data.frame(meta_sep)
+
+meta_sep <- dplyr::select(meta_sep, id,country, state, county, gov, group)
+
+write.table(meta_sep, file = "group_metadata_0.tab", sep ="\t", row.names = FALSE)
+
+```
+
+```{r , echo = FALSE, warning = FALSE, message= FALSE}
+
+meta_sep$county <- str_to_lower(meta_sep$county)
+meta_sep$county <- str_replace(meta_sep$county, "nassau county", "nassau")
+meta_sep$county <- str_replace(meta_sep$county, "suffolk county", "suffolk")
+meta_sep$county <- str_replace(meta_sep$county, "chenango county", "chenango")
+meta_sep$county <- str_trim(meta_sep$county)
+meta_sep$county <- str_to_title(meta_sep$county)
+
+#meta_sep <- meta_sep %>% group_by(county) %>% count() 
+
+```
+
+```{r , echo = FALSE, warning = FALSE, message= FALSE}
+#adding dates and mutation data to the table  
+
+dates <- read.csv("dates.csv")
+dates$date <- as.Date(date_decimal(dates$date, tz = "UTC"))
+
+mutations <- read.delim("mutations.table")
+
+mutation_dates <- left_join(mutations, dates, by = "id")
+
+seq_final <- left_join(mutation_dates, meta_sep, by ="id")
+
+us_dates <- left_join(meta_sep, dates, by = "id")
+
+#creating graphs- graph of dates of sequencing for the US
+
+
+ggplot(data = seq_final, aes(x = group, y = mutations, fill = group)) + 
+  geom_boxplot(alpha = 0.5) +
+  #theme(panel.background = element_blank()) +
+  theme(legend.position = 'none') +
+  scale_fill_brewer(palette="Accent") +
+        geom_jitter(position=position_jitter(0.1), size = 1, alpha = 0.1) +
+        xlab("State Grouping") +
+        ylab("Nucleotide Distance from Root")
+
+ggplot(data = us_dates, aes(x = date, y = group, fill = group)) +
+  geom_density_ridges(stat = "binline", bins = 20, scale = 0.95) +
+  scale_fill_brewer(palette="Accent") +
+        geom_jitter(position=position_jitter(0.1), size = 0.5, alpha = 0.3) +
+        xlab("Date of Isolation") +
+        ylab("Sequence Density")
+  
+'''
+ggplot(data = us_dates, aes(x = date, y = group, fill = group)) +
+geom_density_ridges(jittered_points = TRUE,
+    position = position_points_jitter(width = 0.05, height = 0),
+    point_shape = '^', point_size = 3, point_alpha = 1, alpha = 0.5) +
+    scale_fill_brewer(palette="Accent") +
+        xlab("Date of Isolation") +
+        ylab("Sequenced Density")
+'''
+
+#graph of nucleotide differences from the root for mutation calculator
+
+#box and whisker of state grouping
+
+
+
+
+```
