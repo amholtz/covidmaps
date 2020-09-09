@@ -131,7 +131,6 @@ ggplot(data = us_dates, aes(x = date, y = group, fill = group)) +
   scale_fill_brewer(palette="Accent") +
         xlab("Date of Isolation") +
         ylab("Sequence Density")
-'''
 
 n <- 120
 qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
@@ -140,7 +139,7 @@ col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_co
 color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
 
 x_color = c("#D3D3D3","#2BC5D6","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#E02E5C","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#475195","#1BA473","#C7D62B","#D3D3D3")
-
+'''
 
 ggplot(data = us_dates, aes(x = date, fill = state)) +
   geom_histogram(binwidth = 5) + facet_wrap(~ group) +
@@ -154,6 +153,29 @@ ggplot(data = us_dates, aes(x = date, fill = state)) +
 #graph of nucleotide differences from the root for mutation calculator
 
 #box and whisker of state grouping
+
+us_dates$States <- ifelse(us_dates$state == "New York" | 
+                           us_dates$state == "abroad" |
+                          us_dates$state == "Wisconsin" |
+                          us_dates$state == "Virginia" |
+                          us_dates$state == "Washington"
+                         ,as.character(us_dates$state),
+                          "Remaining States")
+
+x_color = c("#2BC5D6","#E02E5C", "#475195","#1BA473","#C7D62B","#D3D3D3")
+
+#reorder
+us_dates$States <- factor(us_dates$States, levels = c("abroad", "Wisconsin", "New York",
+                                                      "Virginia", "Washington", "Remaining States"))
+
+ggplot(data = us_dates, aes(x = date, fill = States)) +
+  geom_histogram(binwidth = 5) + facet_wrap(~ group) +
+  #scale_fill_manual(values = c("New York" = "white", "Washington" = "#E08214"))+
+  scale_fill_manual(values = x_color) +
+  theme_bw()+
+        xlab("Date of Isolation") +
+        ylab("Sequence Count")
+
 
 
 
