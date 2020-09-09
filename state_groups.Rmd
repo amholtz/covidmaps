@@ -118,22 +118,38 @@ ggplot(data = seq_final, aes(x = group, y = mutations, fill = group)) +
         xlab("State Grouping") +
         ylab("Nucleotide Distance from Root")
 
+'''
 ggplot(data = us_dates, aes(x = date, y = group, fill = group)) +
-  geom_density_ridges(stat = "binline", bins = 20, scale = 0.5) +
+  geom_density_ridges(stat = "binline", bins = 20, scale = 0.7, alpha = 0.2) +
   scale_fill_brewer(palette="Accent") +
-        geom_jitter(position=position_jitter(0.04), size = 0.5, alpha = 0.3) +
+        geom_jitter(size = 0.5, alpha = 1, height = 0.2) +
         xlab("Date of Isolation") +
         ylab("Sequence Density")
   
 ggplot(data = us_dates, aes(x = date, y = group, fill = group)) +
-  geom_density_ridges( scale = 1,
-    aes(point_color = group, point_fill = group),
-    alpha = 0.01, point_alpha = 0.5, jittered_points = TRUE
-  )+
-  scale_point_color_hue(l = 20) +
-  #scale_discrete_manual(aesthetics = "point_shape", values = c(21, 22, 23))
+  geom_density_ridges(scale = 0.8, alpha = 0.3, point_alpha = 1, jittered_points = TRUE, point_size = 0.3) +
+  scale_fill_brewer(palette="Accent") +
         xlab("Date of Isolation") +
         ylab("Sequence Density")
+'''
+
+n <- 120
+qual_col_pals = brewer.pal.info[brewer.pal.info$category == 'qual',]
+col_vector = unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))
+
+color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+
+x_color = c("#D3D3D3","#2BC5D6","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#E02E5C","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#D3D3D3","#475195","#1BA473","#C7D62B","#D3D3D3")
+
+
+ggplot(data = us_dates, aes(x = date, fill = state)) +
+  geom_histogram(binwidth = 5) + facet_wrap(~ group) +
+  #scale_fill_manual(values = c("New York" = "white", "Washington" = "#E08214"))+
+  scale_fill_manual(values = x_color) +
+  theme_bw()+
+        xlab("Date of Isolation") +
+        ylab("Sequence Count")
+
 
 #graph of nucleotide differences from the root for mutation calculator
 
