@@ -3,6 +3,8 @@ title: "Script for Adding Columns"
 author: "Andrew Holtz"
 date: "08/03/2020"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
@@ -24,7 +26,7 @@ library(ggridges)
 ```
 
 #
-```{r , echo = FALSE, warning = FALSE, message= FALSE}
+```{r message=FALSE, warning=FALSE, , echo=FALSE}
 
 #input metadata table for each tree
 
@@ -116,7 +118,22 @@ ggplot(data = seq_final, aes(x = group, y = mutations, fill = group)) +
   scale_fill_brewer(palette="Accent") +
         geom_jitter(position=position_jitter(0.1), size = 1, alpha = 0.1) +
         xlab("State Grouping") +
-        ylab("Nucleotide Distance from Root")
+        ylab("Nucleotide Distance from Root") + ggtitle("Single Nucleotide Mutations in Sequences from Geographic Groups") +
+  theme(plot.title = element_text(size = 15)) +
+  theme(axis.text = element_text(size=25)) +
+  theme(axis.title = element_text(size=15)) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+  
+ggsave("mutation_group.jpeg", width = 8, height = 6)
+
+ggplot(data = seq_final, aes(x = date, y = mutations)) +
+  geom_jitter() +
+  geom_smooth(method = lm)
+
+avg_mut <- seq_final %>% 
+  group_by(group) %>% 
+  summarise(mean = mean(mutations))
 
 '''
 ggplot(data = us_dates, aes(x = date, y = group, fill = group)) +
@@ -174,10 +191,12 @@ ggplot(data = us_dates, aes(x = date, fill = States)) +
   scale_fill_manual(values = x_color) +
   theme_bw()+
         xlab("Date of Isolation") +
-        ylab("Sequence Count")
+        ylab("Sequence Count") +
+        ggtitle("Daily Count of Sequences Collected in the United States by Geographic Region") +
+  theme(plot.title = element_text(hjust = 0.5))
 
 
-
+ggsave("dailycounts.jpeg", width = 8, height = 6)
 
 
 ```
