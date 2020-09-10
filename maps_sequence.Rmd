@@ -14,15 +14,17 @@ suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(sf))
 suppressPackageStartupMessages(library(leaflet))
 suppressPackageStartupMessages(library(rgdal))
-library(raster)
-library(tmap)
-library(RColorBrewer)
-library(dplyr)
+suppressPackageStartupMessages(library(raster))
+suppressPackageStartupMessages(library(tmap))
+suppressPackageStartupMessages(library(RColorBrewer))
+suppressPackageStartupMessages(library(dplyr))
 
 ```
 
 #
 ```{r , echo = FALSE, warning = FALSE, message= FALSE}
+
+#importing from NCBI viral genome database
 
 NCBI <- read.csv("~/covidmaps/NCBI.csv")
 
@@ -43,14 +45,25 @@ names(cases)[1] <- "NAME"
 states <- rgdal::readOGR("C:/Users/Andrew/Downloads/cb_2018_us_state_5m/cb_2018_us_state_5m.shp", layer = "cb_2018_us_state_5m", GDAL1_integer64_policy = TRUE)
 
 
+
 states <- merge(states, cases, by = 'NAME')
 
-bins <- c(NA, 0, 10, 20, 50, 100, 200, 500, 1000, Inf)
+meta_sep$county <- str_replace(meta_sep$county, "nassau county", "nassau")
+
+cases$n <- str_replace_na(cases$n)
+cases$n <- str_replace(cases$n, "NA", as.character(0))
+cases$n <- as.numeric(cases$n)
+
+bins <- c(0,0.9, 1, 10, 20, 50, 100, 200, 500, 1000, 2000)
 
 labels <- sprintf(
   "<strong>%s</strong><br/>%g seq. cases </sup>",
   states$NAME, states$n
 ) %>% lapply(htmltools::HTML)
+
+labelFormat = function(
+      prefix = '', suffix = '', between = ' &ndash; ', digits = 3, big.mark = ',',
+      transform = identity)
 
 leaflet(states) %>% 
   addProviderTiles(providers$OpenStreetMap) %>% 
